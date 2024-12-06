@@ -8,7 +8,6 @@
     <style>
         body {
             background-color: #1a1a2e; /* Dark base */
-            background-image: url("https://uploads.worldanvil.com/uploads/images/30615d015dd2b20a9e7f739b73a07431.jpg");
             color: #d4d4d8;
             font-family: 'Cormorant Garamond', serif;
         }
@@ -280,10 +279,29 @@
         let currentDate = new Date(735, 9, 27);
         
         function getMoonPhase(date) {
-            const daysSinceFullMoon = (date - new Date(735, 10, 1)) / (1000 * 60 * 60 * 24) % 14;
-            if (daysSinceFullMoon === 0) return 'Full Moon';
-            if (daysSinceFullMoon === 7) return 'New Moon';
-            return daysSinceFullMoon < 7 ? 'Waning' : 'Waxing';
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1; // JavaScript months are 0-based
+            const day = date.getDate();
+        
+            const c = Math.floor((year / 100));
+            const e = Math.floor((c / 4));
+            const f = 2 - c + e;
+            const g = Math.floor((365.25 * (year + 4716)));
+            const h = Math.floor((30.6001 * (month + 1)));
+            const julianDate = f + day + g + h - 1524.5;
+        
+            const daysSinceNew = julianDate - 2451549.5;
+            const newMoons = daysSinceNew / 29.53;
+            const phase = newMoons - Math.floor(newMoons);
+        
+            if (phase < 0.03 || phase > 0.97) return "New Moon";
+            if (phase < 0.22) return "Waxing Crescent";
+            if (phase < 0.28) return "First Quarter";
+            if (phase < 0.47) return "Waxing Gibbous";
+            if (phase < 0.53) return "Full Moon";
+            if (phase < 0.72) return "Waning Gibbous";
+            if (phase < 0.78) return "Last Quarter";
+            return "Waning Crescent";
         }
         
         function isFullMoon(date) {
