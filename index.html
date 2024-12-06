@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Barovian Campaign Calendar</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .glow-effect {
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+        .font-horror {
+            font-family: 'Creepster', cursive;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+    <div id="app" class="max-w-6xl mx-auto p-4">
+        <div id="calendar-container" class="bg-gray-800/90 rounded-xl shadow-lg p-6">
+            <h1 class="text-5xl font-bold text-red-600 mb-6 text-center font-horror glow-effect">
+                Barovian Calendar
+            </h1>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <div id="calendar-header" class="flex justify-between items-center mb-4">
+                        <button onclick="changeDate(-1)" class="text-2xl text-red-400 hover:text-red-600">←</button>
+                        <div class="text-center">
+                            <h2 id="current-date" class="text-3xl font-bold font-horror"></h2>
+                            <div id="moon-phase" class="text-sm text-gray-400"></div>
+                        </div>
+                        <button onclick="changeDate(1)" class="text-2xl text-red-400 hover:text-red-600">→</button>
+                    </div>
+
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                        <div>Sun</div><div>Mon</div><div>Tue</div>
+                        <div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div id="quest-section">
+                        <h3 class="text-2xl font-horror text-red-400 mb-2">Active Quests</h3>
+                        <div id="quest-list" class="space-y-2"></div>
+                        
+                        <div class="mt-4 bg-gray-700 p-3 rounded">
+                            <input type="text" id="quest-title" placeholder="Quest Title" 
+                                class="w-full mb-2 p-1 bg-gray-600 text-white rounded">
+                            <textarea id="quest-description" placeholder="Quest Description" 
+                                class="w-full mb-2 p-1 bg-gray-600 text-white rounded"></textarea>
+                            <button onclick="addQuest()" 
+                                class="bg-red-700 text-white px-4 py-2 rounded hover:bg-red-600">
+                                Add Quest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="event-details" class="mt-4 bg-gray-700 p-4 rounded"></div>
+        </div>
+    </div>
+
+    <script>
+        const BAROVIAN_MONTHS = [
+            'Yinvar', 'Fivral', 'Mart', 'Apryl', 'Mai', 'Eyune',
+            'Eyule', 'Avgust', 'Sintyavr', 'Octyavr', 'Neyavr', 'Dekavr'
+        ];
+
+        const DAYS_IN_MONTH = 28;
+        const YEAR = 735;
+
+        const events = [
+            { date: new Date(735, 9, 27), title: "Enter Death House", description: "Players enter Death House" },
+            { date: new Date(735, 9, 28), title: "Arrive in Barovia", description: "Players arrive in the village of Barovia" },
+            { date: new Date(735, 10, 1), title: "Tarokka Reading", description: "Players receive the Tarokka reading" },
+            // ... (other events from the original code)
+        ];
+
+        const quests = [
+            { 
+                title: "Escape from Death House", 
+                description: "Survive the horrors of Death House", 
+                startDate: new Date(735, 9, 27), 
+                endDate: new Date(735, 9, 27), 
+                active: true 
+            },
+            // ... (other quests from the original code)
+        ];
+
+        let currentDate = new Date(735, 9, 27);
+
+        function getMoonPhase(date) {
+            const daysSinceFullMoon = (date - new Date(735, 10, 1)) / (1000 * 60 * 60 * 24) % 14;
+            if (daysSinceFullMoon === 0) return 'Full Moon';
+            if (daysSinceFullMoon === 7) return 'New Moon';
+            return daysSinceFullMoon < 7 ? 'Waning' : 'Waxing';
+        }
+
+        function updateCalendar() {
+            const dateHeader = document.getElementById('current-date');
+            const moonPhaseElement = document.getElementById('moon-phase');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const questList = document.getElementById('quest-list');
+            const eventDetails = document.getElementById('event-details');
+
+            dateHeader.textContent = `${BAROVIAN_MONTHS[currentDate.getMonth()]} ${currentDate.getDate()}, ${YEAR}`;
+            moonPhaseElement.textContent = `Moon Phase: ${getMoonPhase(currentDate)}`;
+
+            // Clear previous grid and event details
+            calendarGrid.innerHTML = '<div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>';
+            eventDetails.innerHTML = '';
+
+            // Render calendar days
+            for (let i = 1; i <= DAYS_IN_MONTH; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.textContent = i;
+                dayCell.classList.add('p-2', 'border', 'cursor-pointer', 'hover:bg-gray-700');
+
+                // Highlight current day
+                if (i === currentDate.getDate()) {
+                    dayCell.classList.add('bg-red-900/30');
+                }
+
+                // Mark days with events
+                const dayEvents = events.filter(event => 
+                    event.date.getFullYear() === currentDate.getFullYear() &&
+                    event.date.getMonth() === currentDate.getMonth() &&
+                    event.date.getDate() === i
+                );
+
+                if (dayEvents.length > 0) {
+                    dayCell.innerHTML += ' <span class="text-yellow-500">*</span>';
+                    dayCell.addEventListener('click', () => {
+                        eventDetails.innerHTML = dayEvents.map(event => 
+                            `<div class="mb-2">
+                                <h4 class="font-bold text-yellow-400">${event.title}</h4>
+                                <p>${event.description}</p>
+                            </div>`
+                        ).join('');
+                    });
+                }
+
+                calendarGrid.appendChild(dayCell);
+            }
+
+            // Update active quests
+            questList.innerHTML = quests
+                .filter(quest => 
+                    quest.active && 
+                    currentDate >= quest.startDate && 
+                    currentDate <= quest.endDate
+                )
+                .map(quest => 
+                    `<div class="bg-gray-700 p-2 rounded">
+                        <div class="flex justify-between items-center">
+                            <span>${quest.title}</span>
+                            <button onclick="toggleQuestStatus('${quest.title}')" 
+                                class="bg-red-600 text-white px-2 py-1 rounded text-sm">
+                                Complete
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-400">${quest.description}</p>
+                    </div>`
+                ).join('');
+        }
+
+        function changeDate(days) {
+            currentDate.setDate(currentDate.getDate() + days);
+            updateCalendar();
+        }
+
+        function addQuest() {
+            const titleInput = document.getElementById('quest-title');
+            const descriptionInput = document.getElementById('quest-description');
+
+            if (titleInput.value && descriptionInput.value) {
+                quests.push({
+                    title: titleInput.value,
+                    description: descriptionInput.value,
+                    startDate: currentDate,
+                    endDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7),
+                    active: true
+                });
+
+                titleInput.value = '';
+                descriptionInput.value = '';
+                updateCalendar();
+            }
+        }
+
+        function toggleQuestStatus(title) {
+            const quest = quests.find(q => q.title === title);
+            if (quest) {
+                quest.active = !quest.active;
+                updateCalendar();
+            }
+        }
+
+        // Initialize calendar
+        updateCalendar();
+    </script>
+</body>
+</html>
