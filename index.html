@@ -75,10 +75,35 @@
         const YEAR = 735;
 
         const events = [
-            { date: new Date(735, 9, 27), title: "Enter Death House", description: "Players enter Death House" },
-            { date: new Date(735, 9, 28), title: "Arrive in Barovia", description: "Players arrive in the village of Barovia" },
-            { date: new Date(735, 10, 1), title: "Tarokka Reading", description: "Players receive the Tarokka reading" },
-            // ... (other events from the original code)
+            { date: new Date(735, 9, 27), title: "Enter Death House", description: "Players enter Death House", type: "introduction" },
+            { date: new Date(735, 9, 28), title: "Arrive in Barovia", description: "Players arrive in the village of Barovia and meet Ismark and Ireena", type: "introduction" },
+            { date: new Date(735, 10, 1), title: "Tarokka Reading", description: "Players receive the Tarokka reading", type: "introduction" },
+            { date: new Date(735, 10, 2), title: "Arrive in Vallaki", description: "Players arrive in Vallaki at dusk", type: "introduction" },
+            { date: new Date(735, 10, 2), title: "Rictavio's Arrival", description: "Ringmaster Rictavio reserves a room at the Blue Water Inn", type: "event" },
+            { date: new Date(735, 10, 2), title: "Bones Stolen", description: "Milivoj steals the bones of St. Andral", type: "event" },
+            { date: new Date(735, 10, 3), title: "Missing Bones Discovered", description: "Father Lucian Petrovich discovers the missing bones", type: "event" },
+            { date: new Date(735, 10, 3), title: "Festival Posters", description: "Izek Strazni puts up posters for the Festival of the Blazing Sun", type: "event" },
+            { date: new Date(735, 10, 3), title: "Wachter's Invitation", description: "If the players show potential resistance towards Vargas, they are invited to dinner by Lady Wachter.", type: "event" },
+            { date: new Date(735, 10, 4), title: "Arabelle's Nameday", description: "Arabelle's nameday at the Vistani encampment", type: "event" },
+            { date: new Date(735, 10, 4), title: "Dinner With Wachter", description: "The party enjoys a dinner with Lady Wachter", type: "event" },
+            { date: new Date(735, 10, 5), title: "Ghostly Visit", description: "The Spirit of Ermaus Van Richten appears to the party", type: "deadline" },
+            { date: new Date(735, 10, 6), title: "Izek Kidnaps Irena", description: "If the party fails to take care of Izek, he kidnaps Irena today", type: "deadline" },
+            { date: new Date(735, 10, 7), title: "St. Andral's Feast", description: "St. Andral's Feast observed. If the party does not recover the bones, the church's ward fails", type: "deadline" },
+            { date: new Date(735, 10, 7), title: "Festival of the Blazing Sun", description: "Vallaki observes the Festival of the Blazing Sun. If Irena is not saved, she burns.", type: "event" },
+            { date: new Date(735, 10, 8), title: "Potential Riots", description: "Possible riots in Vallaki depending on previous events", type: "event" },
+            { date: new Date(735, 10, 9), title: "Stella's Soul Lost", description: "Stella Wachter's soul vanishes into the Ethereal Plane", type: "event" },
+            { date: new Date(735, 10, 9), title: "The Stolen Gem", description: "Urwin Martikov requests help to recover the stolen gem", type: "introduction" },
+            { date: new Date(735, 10, 10), title: "Ezmerelda's Return", description: "Ezmerelda d'Avenir returns to the Abbey of Saint Markovia", type: "event" },
+            { date: new Date(735, 10, 11), title: "Arturi Radanavich Departs", description: "Arturi Radanavich departs from the Tser Pool encampment", type: "event" },
+            { date: new Date(735, 10, 11), title: "Yester Hill Ritual", description: "Druids complete the ritual at Yester Hill. If the party fails to do this by then, Wintersplinter may be unleashed", type: "deadline" },
+            { date: new Date(735, 10, 13), title: "Dinner with Strahd", description: "Players dine with Strahd von Zarovich at dusk", type: "event" },
+            { date: new Date(735, 10, 14), title: "Ravenloft Vulnerable", description: "Strahd is away, presenting an opportunity to infiltrate Castle Ravenloft", type: "event" },
+            { date: new Date(735, 10, 15), title: "Abbot's Sinister Plan", description: "Abbot of the Abbey of St. Markovia plans to seize Baroness Anna Krezkova's heart before nightfall", type: "deadline" },
+            { date: new Date(735, 10, 15), title: "Revenant Knights Warrant", description: "Commander Vladimir Horngaard gathers his revenant knights to execute a warrant for the party's deaths", type: "deadline" },
+            { date: new Date(735, 10, 17), title: "First Tyrant Trial - Vallaki", description: "The first of the Tyrant Trials takes place as Strahd approaches the party in Vallaki", type: "event" },
+            { date: new Date(735, 10, 17), title: "Second Tyrant Trial - Tsolenka Pass", description: "The second of the Tyrant Trials takes place as Strahd approaches the party in Tsolenka Pass", type: "event" },
+            { date: new Date(735, 10, 18), title: "Third Tyrant Trial - Soldav", description: "The third of the Tyrant Trials takes place as Strahd approaches the party in Soldav", type: "event" },
+            { date: new Date(735, 10, 22), title: "Argynvost's Soul Destroyed", description: "Argynvost's soul is destroyed with the lighting of the beacon", type: "event" }
         ];
 
         const quests = [
@@ -88,8 +113,105 @@
                 startDate: new Date(735, 9, 27), 
                 endDate: new Date(735, 9, 27), 
                 active: true 
-            },
-            // ... (other quests from the original code)
+              },
+              { 
+                title: "Welcome to Barovia", 
+                description: "Protect the village of Barovia from a siege", 
+                startDate: new Date(735, 9, 28), 
+                endDate: new Date(735, 9, 28), 
+                active: true 
+              },
+              { 
+                title: "Into the Valley", 
+                description: "Journey deeper into the Valley of Barovia", 
+                startDate: new Date(735, 10, 1), 
+                endDate: new Date(735, 10, 2), 
+                active: true 
+              },
+              { 
+                title: "St. Andral's Feast", 
+                description: "Investigate the missing bones and prevent a disaster", 
+                startDate: new Date(735, 10, 3), 
+                endDate: new Date(735, 10, 6), 
+                active: true 
+              },
+              { 
+                title: "The Missing Vistana", 
+                description: "Find the missing Vistani child, Arabelle", 
+                startDate: new Date(735, 10, 3), 
+                endDate: new Date(735, 10, 9), 
+                active: true 
+              },
+              { 
+                title: "Lady Wachter's Wish", 
+                description: "Navigate the political intrigue of Vallaki", 
+                startDate: new Date(735, 10, 4), 
+                endDate: new Date(735, 10, 9), 
+                active: true 
+              },
+              { 
+                title: "The Strazni Siblings", 
+                description: "Uncover the connection between Izek and Ireena", 
+                startDate: new Date(735, 10, 4), 
+                endDate: new Date(735, 10, 6), 
+                active: true 
+              },
+              { 
+                title: "The Lost Soul", 
+                description: "Help Victor Vallakovich with a supernatural problem", 
+                startDate: new Date(735, 10, 5), 
+                endDate: new Date(735, 10, 7), 
+                active: true 
+              },
+              { 
+                title: "The Walls of Krezk", 
+                description: "Gain entry to the walled town of Krezk", 
+                startDate: new Date(735, 10, 3), 
+                endDate: new Date(735, 10, 8), 
+                active: true 
+              },
+              { 
+                title: "The Stolen Gem", 
+                description: "Recover the stolen gem for the Wizard of Wines winery", 
+                startDate: new Date(735, 10, 9), 
+                endDate: new Date(735, 10, 16), 
+                active: true 
+              },
+              { 
+                title: "The Fallen Abbey", 
+                description: "Investigate the Abbey of Saint Markovia", 
+                startDate: new Date(735, 10, 11), 
+                endDate: new Date(735, 10, 16), 
+                active: true 
+              },
+              { 
+                title: "The Den of Wolves", 
+                description: "Deal with the werewolf threat in the Svalich Woods", 
+                startDate: new Date(735, 10, 12), 
+                endDate: new Date(735, 10, 16), 
+                active: true 
+              },
+              { 
+                title: "Argynvost's Beacon", 
+                description: "Restore hope to the land by lighting Argynvost's beacon", 
+                startDate: new Date(735, 10, 9), 
+                endDate: new Date(735, 10, 16), 
+                active: true 
+              },
+              { 
+                title: "Dinner with the Devil", 
+                description: "Attend a dinner invitation from Strahd von Zarovich", 
+                startDate: new Date(735, 10, 14), 
+                endDate: new Date(735, 10, 14), 
+                active: true 
+              },
+              { 
+                title: "Ravenloft Heist", 
+                description: "Infiltrate Castle Ravenloft to gather crucial items or information", 
+                startDate: new Date(735, 10, 15), 
+                endDate: new Date(735, 10, 15), 
+                active: true 
+              }
         ];
 
         let currentDate = new Date(735, 9, 27);
