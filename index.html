@@ -39,6 +39,29 @@
         .calendar-cell.bg-yellow-500:hover {
             background-color: #f6e05e; /* Slightly lighter yellow on hover */
         }
+        .moon-full {
+            position: relative;
+        }
+        .moon-full::after {
+            content: "○";
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            font-size: 0.8em;
+            color: #ffffff;
+        }
+        
+        .moon-new {
+            position: relative;
+        }
+        .moon-new::after {
+            content: "●";
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            font-size: 0.8em;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 min-h-screen">
@@ -296,6 +319,15 @@
             if (dayInCycle < 10) return "Waxing Crescent";
             return "Waxing Gibbous";
         }
+        function getMoonIndicator(date) {
+            const startDate = new Date(735, 10, 8); // Neyavr 8th - first full moon
+            const dayDifference = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+            const dayInCycle = ((dayDifference % 14) + 14) % 14;
+            
+            if (dayInCycle === 0) return 'full';
+            if (dayInCycle === 7) return 'new';
+            return null;
+        }
         
         function isFullMoon(date) {
             const daysSinceFullMoon = (date - new Date(735, 10, 1)) / (1000 * 60 * 60 * 24) % 14;
@@ -339,7 +371,15 @@
                 const dayEvents = campaignEvents.filter(event => 
                     event.date.toDateString() === currentCellDate.toDateString()
                 );
-        
+                
+                // Add moon phase indicator
+                const moonPhase = getMoonIndicator(currentCellDate);
+                if (moonPhase === 'full') {
+                    dateCell.classList.add('moon-full');
+                } else if (moonPhase === 'new') {
+                    dateCell.classList.add('moon-new');
+                }
+                
                 if (dayEvents.length > 0) {
                     dateCell.classList.add('event-highlight', 'text-gray-300', 'font-bold');
                     dateCell.title = dayEvents.map(event => event.title).join('\n'); // Tooltip with event titles
