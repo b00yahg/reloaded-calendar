@@ -279,29 +279,22 @@
         let currentDate = new Date(735, 9, 27);
         
         function getMoonPhase(date) {
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1; // JavaScript months are 0-based
-            const day = date.getDate();
-        
-            const c = Math.floor((year / 100));
-            const e = Math.floor((c / 4));
-            const f = 2 - c + e;
-            const g = Math.floor((365.25 * (year + 4716)));
-            const h = Math.floor((30.6001 * (month + 1)));
-            const julianDate = f + day + g + h - 1524.5;
-        
-            const daysSinceNew = julianDate - 2451549.5;
-            const newMoons = daysSinceNew / 29.53;
-            const phase = newMoons - Math.floor(newMoons);
-        
-            if (phase < 0.03 || phase > 0.97) return "New Moon";
-            if (phase < 0.22) return "Waxing Crescent";
-            if (phase < 0.28) return "First Quarter";
-            if (phase < 0.47) return "Waxing Gibbous";
-            if (phase < 0.53) return "Full Moon";
-            if (phase < 0.72) return "Waning Gibbous";
-            if (phase < 0.78) return "Last Quarter";
-            return "Waning Crescent";
+            // Convert the given date to number of days since campaign start
+            const startDate = new Date(735, 10, 8); // Neyavr 8th - first full moon
+            const dayDifference = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+            
+            // Calculate position in 14-day cycle
+            const dayInCycle = ((dayDifference % 14) + 14) % 14;
+            
+            // Define moon phases based on 14-day cycle
+            if (dayInCycle === 0) return "Full Moon";
+            if (dayInCycle === 7) return "New Moon";
+            if (dayInCycle === 3) return "Last Quarter";
+            if (dayInCycle === 10) return "First Quarter";
+            if (dayInCycle < 3) return "Waning Gibbous";
+            if (dayInCycle < 7) return "Waning Crescent";
+            if (dayInCycle < 10) return "Waxing Crescent";
+            return "Waxing Gibbous";
         }
         
         function isFullMoon(date) {
@@ -376,6 +369,9 @@
             // Format date
             const formattedDate = `${selectedDate.getDate()} ${BAROVIAN_MONTHS[selectedDate.getMonth()]} ${YEAR}`;
             selectedDateElement.textContent = formattedDate;
+
+            // Add this line:
+            document.getElementById('moon-phase').textContent = `Moon Phase: ${getMoonPhase(selectedDate)}`;
 
             // Find and display events
             const dayEvents = campaignEvents.filter(event => 
