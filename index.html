@@ -8,6 +8,10 @@
     <style>
         body {
             background-color: #0f1122; /* Darker gothic base */
+            background-image: url('https://pwimages-a.akamaihd.net/arc/99/df/99df3af0ae09422b0f1a2769839c45141526076104.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: #d4d4d8;
             font-family: 'Cormorant Garamond', serif;
         }
@@ -91,6 +95,10 @@
         .tab {
             cursor: pointer;
             user-select: none;
+        }
+        #calendar-container {
+            background-color: rgba(31, 41, 55, 0.85) !important;
+            backdrop-filter: blur(3px);
         }
     </style>
 </head>
@@ -576,13 +584,6 @@
             
             // Update header
             currentMonthElem.textContent = `${BAROVIAN_MONTHS[currentDate.month]} ${currentDate.year}`;
-            
-            // Highlight campaign relevant months
-            if (currentDate.month >= 9 && currentDate.month <= 11) {
-                currentMonthElem.parentElement.classList.add('campaign-month');
-            } else {
-                currentMonthElem.parentElement.classList.remove('campaign-month');
-            }
             
             // Show moon phase for selected date
             const moonPhase = getMoonPhase(selectedDate);
