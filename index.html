@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #1a1a2e; /* Dark base */
+            background-color: #0f1122; /* Darker gothic base */
             color: #d4d4d8;
             font-family: 'Cormorant Garamond', serif;
         }
@@ -18,7 +18,13 @@
         }
         .calendar-cell {
             transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border for a gothic feel */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
         .calendar-cell:hover {
             transform: scale(1.05);
@@ -33,34 +39,58 @@
             backdrop-filter: blur(10px);
             color: #f0e130; /* Accent text color for gothic charm */
         }
-        .calendar-cell.bg-yellow-500 {
-            transition: background-color 0.3s ease;
+        .campaign-month {
+            border: 2px solid #b71540;
+            border-radius: 0.5rem;
         }
-        .calendar-cell.bg-yellow-500:hover {
-            background-color: #f6e05e; /* Slightly lighter yellow on hover */
-        }
-        .moon-full {
-            position: relative;
-        }
-        .moon-full::after {
-            content: "○";
+        .moon-icon {
             position: absolute;
-            top: -2px;
+            top: 2px;
             right: 2px;
             font-size: 0.8em;
-            color: #ffffff;
         }
-        
-        .moon-new {
-            position: relative;
+        .event-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin: 1px;
         }
-        .moon-new::after {
-            content: "●";
-            position: absolute;
-            top: -2px;
-            right: 2px;
-            font-size: 0.8em;
-            color: #ffffff;
+        .event-introduction {
+            background-color: #4c9aff; /* Blue */
+        }
+        .event-deadline {
+            background-color: #ff5630; /* Red */
+        }
+        .event-normal {
+            background-color: #8993be; /* Purple */
+        }
+        .event-custom {
+            background-color: #36b37e; /* Green */
+        }
+        .inactive-month {
+            opacity: 0.5;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a4a6a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6a6a8a;
+        }
+        .tab-active {
+            border-bottom: 2px solid #b71540;
+            color: #f0e6d2;
+        }
+        .tab {
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
@@ -71,60 +101,116 @@
                 Curse of Strahd Reloaded Calendar
             </h1>
             
-            <div class="grid grid-cols-3 gap-4">
-                <!-- Calendar Section -->
-                <div class="col-span-2">
-                    <div id="calendar-header" class="flex justify-between items-center mb-4">
-                        <button onclick="changeMonth(-1)" class="text-3xl text-gray-400 hover:text-gray-200 transition">
-                            &#10094;
-                        </button>
-                        <div class="text-center">
-                            <h2 id="current-date" class="text-3xl font-bold gothic-header"></h2>
-                            <div id="moon-phase" class="text-sm text-gray-400"></div>
+            <div class="tabs flex justify-center mb-6 space-x-6 text-xl">
+                <div id="tab-calendar" class="tab tab-active px-4 py-2">Calendar</div>
+                <div id="tab-timeline" class="tab px-4 py-2">Timeline</div>
+            </div>
+            
+            <div id="view-calendar">
+                <div class="grid grid-cols-3 gap-4">
+                    <!-- Calendar Section -->
+                    <div class="col-span-2">
+                        <div id="calendar-header" class="flex justify-between items-center mb-4">
+                            <button id="prev-month" class="text-3xl text-gray-400 hover:text-gray-200 transition">
+                                &#10094;
+                            </button>
+                            <div class="text-center">
+                                <h2 id="current-month" class="text-3xl font-bold gothic-header"></h2>
+                                <div id="moon-phase" class="text-sm text-gray-400"></div>
+                            </div>
+                            <button id="next-month" class="text-3xl text-gray-400 hover:text-gray-200 transition">
+                                &#10095;
+                            </button>
                         </div>
-                        <button onclick="changeMonth(1)" class="text-3xl text-gray-400 hover:text-gray-200 transition">
-                            &#10095;
-                        </button>
+
+                        <div class="grid grid-cols-7 gap-1 text-center">
+                            <div class="text-gray-500">Sun</div>
+                            <div class="text-gray-500">Mon</div>
+                            <div class="text-gray-500">Tue</div>
+                            <div class="text-gray-500">Wed</div>
+                            <div class="text-gray-500">Thu</div>
+                            <div class="text-gray-500">Fri</div>
+                            <div class="text-gray-500">Sat</div>
+                        </div>
+                        
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-1 mt-1"></div>
                     </div>
 
-                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 text-center">
-                        <div class="text-gray-500">Sun</div>
-                        <div class="text-gray-500">Mon</div>
-                        <div class="text-gray-500">Tue</div>
-                        <div class="text-gray-500">Wed</div>
-                        <div class="text-gray-500">Thu</div>
-                        <div class="text-gray-500">Fri</div>
-                        <div class="text-gray-500">Sat</div>
+                    <!-- Event and Quest Section -->
+                    <div>
+                        <div id="quest-section">
+                            <h3 class="text-2xl gothic-header text-gray-300 mb-2">Active Quests</h3>
+                            <div id="quest-list" class="space-y-2 max-h-96 overflow-y-auto pr-2"></div>
+                            
+                            <div class="mt-4 bg-gray-700/50 p-3 rounded">
+                                <input type="text" id="quest-title" placeholder="Quest Title" 
+                                    class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded">
+                                <textarea id="quest-description" placeholder="Quest Description" rows="2"
+                                    class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded"></textarea>
+                                <div class="grid grid-cols-2 gap-2 mb-2">
+                                    <div>
+                                        <label class="text-sm text-gray-400">Start Date</label>
+                                        <div class="flex space-x-2">
+                                            <select id="start-month" class="bg-gray-600/70 text-white rounded p-1 w-full"></select>
+                                            <select id="start-day" class="bg-gray-600/70 text-white rounded p-1 w-full"></select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm text-gray-400">End Date</label>
+                                        <div class="flex space-x-2">
+                                            <select id="end-month" class="bg-gray-600/70 text-white rounded p-1 w-full"></select>
+                                            <select id="end-day" class="bg-gray-600/70 text-white rounded p-1 w-full"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button id="add-quest-btn" 
+                                    class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 w-full">
+                                    Add Quest
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Event and Quest Section -->
-                <div>
-                    <div id="quest-section">
-                        <h3 class="text-2xl gothic-header text-gray-300 mb-2">Active Quests</h3>
-                        <div id="quest-list" class="space-y-2"></div>
-                        
-                        <div class="mt-4 bg-gray-700/50 p-3 rounded">
-                            <input type="text" id="quest-title" placeholder="Quest Title" 
-                                class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded">
-                            <textarea id="quest-description" placeholder="Quest Description" 
-                                class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded"></textarea>
-                            <input type="date" id="quest-start-date" 
-                                class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded">
-                            <input type="date" id="quest-end-date" 
-                                class="w-full mb-2 p-1 bg-gray-600/70 text-white rounded">
-                            <button onclick="addQuest()" 
-                                class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
-                                Add Quest
-                            </button>
-                        </div>
+                <div id="event-details" class="mt-4 bg-gray-700/50 p-4 rounded">
+                    <h3 id="selected-date" class="text-xl gothic-header mb-2"></h3>
+                    <div id="date-events" class="mb-4 max-h-80 overflow-y-auto"></div>
+                    <div class="flex justify-end">
+                        <button id="add-event-btn" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
+                            Add Event to This Date
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center mt-4 space-x-2">
+                    <div class="flex items-center">
+                        <div class="event-dot event-introduction mr-1"></div>
+                        <span class="text-sm">Introduction</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="event-dot event-deadline mr-1"></div>
+                        <span class="text-sm">Deadline</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="event-dot event-normal mr-1"></div>
+                        <span class="text-sm">Event</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="event-dot event-custom mr-1"></div>
+                        <span class="text-sm">Custom</span>
                     </div>
                 </div>
             </div>
-
-            <div id="event-details" class="mt-4 bg-gray-700/50 p-4 rounded">
-                <h3 id="selected-date" class="text-xl gothic-header mb-2"></h3>
-                <div id="date-events" class="mb-4"></div>
+            
+            <div id="view-timeline" class="hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl gothic-header text-gray-300">Campaign Timeline</h3>
+                    <div class="flex space-x-2">
+                        <button id="show-all-events" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">All</button>
+                        <button id="show-upcoming-events" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">Upcoming</button>
+                    </div>
+                </div>
+                <div id="timeline-content" class="space-y-4 max-h-96 overflow-y-auto pr-2"></div>
             </div>
         </div>
     </div>
@@ -135,14 +221,20 @@
             <h2 class="text-2xl gothic-header mb-4">Add Custom Event</h2>
             <input type="text" id="custom-event-title" placeholder="Event Title" 
                 class="w-full mb-2 p-2 bg-gray-700 text-white rounded">
-            <textarea id="custom-event-description" placeholder="Event Description" 
+            <textarea id="custom-event-description" placeholder="Event Description" rows="3"
                 class="w-full mb-2 p-2 bg-gray-700 text-white rounded"></textarea>
+            <select id="custom-event-type" class="w-full mb-2 p-2 bg-gray-700 text-white rounded">
+                <option value="event">Regular Event</option>
+                <option value="introduction">Introduction</option>
+                <option value="deadline">Deadline</option>
+                <option value="custom">Custom</option>
+            </select>
             <div class="flex justify-end space-x-2">
-                <button onclick="closeModal()" 
+                <button id="close-modal-btn" 
                     class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500">
                     Cancel
                 </button>
-                <button onclick="saveCustomEvent()" 
+                <button id="save-event-btn" 
                     class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">
                     Save Event
                 </button>
@@ -151,366 +243,691 @@
     </div>
 
     <script>
+        // Custom calendar system for Barovia
+        class BarovianDate {
+            constructor(year, month, day) {
+                this.year = year;
+                this.month = month; // 0-11 like JS date
+                this.day = day; // 1-28
+                
+                // Validate
+                if (day < 1 || day > 28) {
+                    throw new Error("Invalid day: Must be between 1 and 28");
+                }
+                if (month < 0 || month > 11) {
+                    throw new Error("Invalid month: Must be between 0 and 11");
+                }
+            }
+            
+            static fromString(dateString) {
+                // Format: "YYYY-MM-DD" where MM is 1-12
+                const [year, month, day] = dateString.split('-').map(n => parseInt(n));
+                return new BarovianDate(year, month - 1, day); // Convert 1-12 month to 0-11
+            }
+            
+            toString() {
+                return `${this.year}-${String(this.month + 1).padStart(2, '0')}-${String(this.day).padStart(2, '0')}`;
+            }
+            
+            toDisplayString() {
+                return `${this.day} ${BAROVIAN_MONTHS[this.month]} ${this.year}`;
+            }
+            
+            equals(otherDate) {
+                return this.year === otherDate.year && 
+                       this.month === otherDate.month && 
+                       this.day === otherDate.day;
+            }
+            
+            isBefore(otherDate) {
+                if (this.year < otherDate.year) return true;
+                if (this.year > otherDate.year) return false;
+                if (this.month < otherDate.month) return true;
+                if (this.month > otherDate.month) return false;
+                return this.day < otherDate.day;
+            }
+            
+            isAfter(otherDate) {
+                return !this.equals(otherDate) && !this.isBefore(otherDate);
+            }
+            
+            clone() {
+                return new BarovianDate(this.year, this.month, this.day);
+            }
+            
+            // Get a date that is numDays in the future (or past if negative)
+            addDays(numDays) {
+                let newDay = this.day + numDays;
+                let newMonth = this.month;
+                let newYear = this.year;
+                
+                while (newDay > 28) {
+                    newDay -= 28;
+                    newMonth++;
+                    if (newMonth > 11) {
+                        newMonth = 0;
+                        newYear++;
+                    }
+                }
+                
+                while (newDay < 1) {
+                    newDay += 28;
+                    newMonth--;
+                    if (newMonth < 0) {
+                        newMonth = 11;
+                        newYear--;
+                    }
+                }
+                
+                return new BarovianDate(newYear, newMonth, newDay);
+            }
+            
+            // Calculate days between two dates
+            daysBetween(otherDate) {
+                // Convert both dates to absolute day numbers since year 0
+                const thisTotalDays = this.year * 336 + this.month * 28 + this.day;
+                const otherTotalDays = otherDate.year * 336 + otherDate.month * 28 + otherDate.day;
+                return otherTotalDays - thisTotalDays;
+            }
+            
+            // Day of week (0 = Sunday, 6 = Saturday)
+            getDayOfWeek() {
+                // Assuming 1-1-1 was a Sunday, calculate days since then
+                const totalDays = this.year * 336 + this.month * 28 + this.day - 1;
+                return totalDays % 7;
+            }
+        }
+
+        // Constants
         const BAROVIAN_MONTHS = [
             'Yinvar', 'Fivral', 'Mart', 'Apryl', 'Mai', 'Eyune',
             'Eyule', 'Avgust', 'Sintyavr', 'Octyavr', 'Neyavr', 'Dekavr'
         ];
-
-        const DAYS_IN_MONTH = 28;
-        const YEAR = 735;
-
+        
+        const MOON_PHASES = [
+            {name: 'Full Moon', emoji: '🌕'},
+            {name: 'Waning Gibbous', emoji: '🌖'},
+            {name: 'Waning Gibbous', emoji: '🌖'},
+            {name: 'Last Quarter', emoji: '🌗'},
+            {name: 'Last Quarter', emoji: '🌗'},
+            {name: 'Waning Crescent', emoji: '🌘'},
+            {name: 'Waning Crescent', emoji: '🌘'},
+            {name: 'New Moon', emoji: '🌑'},
+            {name: 'Waxing Crescent', emoji: '🌒'},
+            {name: 'Waxing Crescent', emoji: '🌒'},
+            {name: 'First Quarter', emoji: '🌓'},
+            {name: 'First Quarter', emoji: '🌓'},
+            {name: 'Waxing Gibbous', emoji: '🌔'},
+            {name: 'Waxing Gibbous', emoji: '🌔'}
+        ];
+        
+        // Campaign data
         const campaignEvents = [
-            { date: new Date(735, 9, 27), title: "Enter Death House", description: "Players enter Death House", type: "introduction" },
-            { date: new Date(735, 9, 28), title: "Arrive in Barovia", description: "Players arrive in the village of Barovia and meet Ismark and Ireena", type: "introduction" },
-            { date: new Date(735, 10, 1), title: "Tarokka Reading", description: "Players receive the Tarokka reading", type: "introduction" },
-            { date: new Date(735, 10, 2), title: "Arrive in Vallaki", description: "Players arrive in Vallaki at dusk", type: "introduction" },
-            { date: new Date(735, 10, 2), title: "Rictavio's Arrival", description: "Ringmaster Rictavio reserves a room at the Blue Water Inn", type: "event" },
-            { date: new Date(735, 10, 2), title: "Bones Stolen", description: "Milivoj steals the bones of St. Andral", type: "event" },
-            { date: new Date(735, 10, 3), title: "Missing Bones Discovered", description: "Father Lucian Petrovich discovers the missing bones", type: "event" },
-            { date: new Date(735, 10, 3), title: "Festival Posters", description: "Izek Strazni puts up posters for the Festival of the Blazing Sun", type: "event" },
-            { date: new Date(735, 10, 3), title: "Wachter's Invitation", description: "If the players show potential resistance towards Vargas, they are invited to dinner by Lady Wachter.", type: "event" },
-            { date: new Date(735, 10, 4), title: "Arabelle's Nameday", description: "Arabelle's nameday at the Vistani encampment", type: "event" },
-            { date: new Date(735, 10, 4), title: "Dinner With Wachter", description: "The party enjoys a dinner with Lady Wachter", type: "event" },
-            { date: new Date(735, 10, 5), title: "Ghostly Visit", description: "The Spirit of Ermaus Van Richten appears to the party", type: "deadline" },
-            { date: new Date(735, 10, 6), title: "Izek Kidnaps Irena", description: "If the party fails to take care of Izek, he kidnaps Irena today", type: "deadline" },
-            { date: new Date(735, 10, 7), title: "St. Andral's Feast", description: "St. Andral's Feast observed. If the party does not recover the bones, the church's ward fails", type: "deadline" },
-            { date: new Date(735, 10, 7), title: "Festival of the Blazing Sun", description: "Vallaki observes the Festival of the Blazing Sun. If Irena is not saved, she burns.", type: "event" },
-            { date: new Date(735, 10, 8), title: "Potential Riots", description: "Possible riots in Vallaki depending on previous events", type: "event" },
-            { date: new Date(735, 10, 9), title: "Stella's Soul Lost", description: "Stella Wachter's soul vanishes into the Ethereal Plane", type: "event" },
-            { date: new Date(735, 10, 9), title: "The Stolen Gem", description: "Urwin Martikov requests help to recover the stolen gem", type: "introduction" },
-            { date: new Date(735, 10, 10), title: "Ezmerelda's Return", description: "Ezmerelda d'Avenir returns to the Abbey of Saint Markovia", type: "event" },
-            { date: new Date(735, 10, 11), title: "Arturi Radanavich Departs", description: "Arturi Radanavich departs from the Tser Pool encampment", type: "event" },
-            { date: new Date(735, 10, 11), title: "Yester Hill Ritual", description: "Druids complete the ritual at Yester Hill. If the party fails to do this by then, Wintersplinter may be unleashed", type: "deadline" },
-            { date: new Date(735, 10, 13), title: "Dinner with Strahd", description: "Players dine with Strahd von Zarovich at dusk", type: "event" },
-            { date: new Date(735, 10, 14), title: "Ravenloft Vulnerable", description: "Strahd is away, presenting an opportunity to infiltrate Castle Ravenloft", type: "event" },
-            { date: new Date(735, 10, 15), title: "Abbot's Sinister Plan", description: "Abbot of the Abbey of St. Markovia plans to seize Baroness Anna Krezkova's heart before nightfall", type: "deadline" },
-            { date: new Date(735, 10, 15), title: "Revenant Knights Warrant", description: "Commander Vladimir Horngaard gathers his revenant knights to execute a warrant for the party's deaths", type: "deadline" },
-            { date: new Date(735, 10, 17), title: "First Tyrant Trial - Vallaki", description: "The first of the Tyrant Trials takes place as Strahd approaches the party in Vallaki", type: "event" },
-            { date: new Date(735, 10, 17), title: "Second Tyrant Trial - Tsolenka Pass", description: "The second of the Tyrant Trials takes place as Strahd approaches the party in Tsolenka Pass", type: "event" },
-            { date: new Date(735, 10, 18), title: "Third Tyrant Trial - Soldav", description: "The third of the Tyrant Trials takes place as Strahd approaches the party in Soldav", type: "event" },
-            { date: new Date(735, 10, 22), title: "Argynvost's Soul Destroyed", description: "Argynvost's soul is destroyed with the lighting of the beacon", type: "event" }
+            { date: new BarovianDate(735, 9, 27), title: "Enter Death House", description: "Players enter Death House", type: "introduction" },
+            { date: new BarovianDate(735, 9, 28), title: "Arrive in Barovia", description: "Players arrive in the village of Barovia and meet Ismark and Ireena", type: "introduction" },
+            { date: new BarovianDate(735, 10, 1), title: "Tarokka Reading", description: "Players receive the Tarokka reading", type: "introduction" },
+            { date: new BarovianDate(735, 10, 2), title: "Arrive in Vallaki", description: "Players arrive in Vallaki at dusk", type: "introduction" },
+            { date: new BarovianDate(735, 10, 2), title: "Rictavio's Arrival", description: "Ringmaster Rictavio reserves a room at the Blue Water Inn", type: "event" },
+            { date: new BarovianDate(735, 10, 2), title: "Bones Stolen", description: "Milivoj steals the bones of St. Andral", type: "event" },
+            { date: new BarovianDate(735, 10, 3), title: "Missing Bones Discovered", description: "Father Lucian Petrovich discovers the missing bones", type: "event" },
+            { date: new BarovianDate(735, 10, 3), title: "Festival Posters", description: "Izek Strazni puts up posters for the Festival of the Blazing Sun", type: "event" },
+            { date: new BarovianDate(735, 10, 3), title: "Wachter's Invitation", description: "If the players show potential resistance towards Vargas, they are invited to dinner by Lady Wachter.", type: "event" },
+            { date: new BarovianDate(735, 10, 4), title: "Arabelle's Nameday", description: "Arabelle's nameday at the Vistani encampment", type: "event" },
+            { date: new BarovianDate(735, 10, 4), title: "Dinner With Wachter", description: "The party enjoys a dinner with Lady Wachter", type: "event" },
+            { date: new BarovianDate(735, 10, 5), title: "Ghostly Visit", description: "The Spirit of Ermaus Van Richten appears to the party", type: "deadline" },
+            { date: new BarovianDate(735, 10, 6), title: "Izek Kidnaps Irena", description: "If the party fails to take care of Izek, he kidnaps Irena today", type: "deadline" },
+            { date: new BarovianDate(735, 10, 7), title: "St. Andral's Feast", description: "St. Andral's Feast observed. If the party does not recover the bones, the church's ward fails", type: "deadline" },
+            { date: new BarovianDate(735, 10, 7), title: "Festival of the Blazing Sun", description: "Vallaki observes the Festival of the Blazing Sun. If Irena is not saved, she burns.", type: "event" },
+            { date: new BarovianDate(735, 10, 8), title: "Potential Riots", description: "Possible riots in Vallaki depending on previous events", type: "event" },
+            { date: new BarovianDate(735, 10, 9), title: "Stella's Soul Lost", description: "Stella Wachter's soul vanishes into the Ethereal Plane", type: "event" },
+            { date: new BarovianDate(735, 10, 9), title: "The Stolen Gem", description: "Urwin Martikov requests help to recover the stolen gem", type: "introduction" },
+            { date: new BarovianDate(735, 10, 10), title: "Ezmerelda's Return", description: "Ezmerelda d'Avenir returns to the Abbey of Saint Markovia", type: "event" },
+            { date: new BarovianDate(735, 10, 11), title: "Arturi Radanavich Departs", description: "Arturi Radanavich departs from the Tser Pool encampment", type: "event" },
+            { date: new BarovianDate(735, 10, 11), title: "Yester Hill Ritual", description: "Druids complete the ritual at Yester Hill. If the party fails to do this by then, Wintersplinter may be unleashed", type: "deadline" },
+            { date: new BarovianDate(735, 10, 13), title: "Dinner with Strahd", description: "Players dine with Strahd von Zarovich at dusk", type: "event" },
+            { date: new BarovianDate(735, 10, 14), title: "Ravenloft Vulnerable", description: "Strahd is away, presenting an opportunity to infiltrate Castle Ravenloft", type: "event" },
+            { date: new BarovianDate(735, 10, 15), title: "Abbot's Sinister Plan", description: "Abbot of the Abbey of St. Markovia plans to seize Baroness Anna Krezkova's heart before nightfall", type: "deadline" },
+            { date: new BarovianDate(735, 10, 15), title: "Revenant Knights Warrant", description: "Commander Vladimir Horngaard gathers his revenant knights to execute a warrant for the party's deaths", type: "deadline" },
+            { date: new BarovianDate(735, 10, 17), title: "First Tyrant Trial - Vallaki", description: "The first of the Tyrant Trials takes place as Strahd approaches the party in Vallaki", type: "event" },
+            { date: new BarovianDate(735, 10, 17), title: "Second Tyrant Trial - Tsolenka Pass", description: "The second of the Tyrant Trials takes place as Strahd approaches the party in Tsolenka Pass", type: "event" },
+            { date: new BarovianDate(735, 10, 18), title: "Third Tyrant Trial - Soldav", description: "The third of the Tyrant Trials takes place as Strahd approaches the party in Soldav", type: "event" },
+            { date: new BarovianDate(735, 10, 22), title: "Argynvost's Soul Destroyed", description: "Argynvost's soul is destroyed with the lighting of the beacon", type: "event" }
         ];
 
         const initialQuests = [
             { 
                 title: "Escape from Death House", 
                 description: "Survive the horrors of Death House", 
-                startDate: new Date(735, 9, 27), 
-                endDate: new Date(735, 9, 27), 
+                startDate: new BarovianDate(735, 9, 27), 
+                endDate: new BarovianDate(735, 9, 27), 
                 active: true 
             },
             { 
                 title: "Welcome to Barovia", 
                 description: "Protect the village of Barovia from a siege", 
-                startDate: new Date(735, 9, 28), 
-                endDate: new Date(735, 9, 28), 
+                startDate: new BarovianDate(735, 9, 28), 
+                endDate: new BarovianDate(735, 9, 28), 
                 active: true 
             },
             { 
                 title: "Into the Valley", 
                 description: "Journey deeper into the Valley of Barovia", 
-                startDate: new Date(735, 10, 1), 
-                endDate: new Date(735, 10, 2), 
+                startDate: new BarovianDate(735, 10, 1), 
+                endDate: new BarovianDate(735, 10, 2), 
                 active: true 
             },
             { 
                 title: "St. Andral's Feast", 
                 description: "Investigate the missing bones and prevent a disaster", 
-                startDate: new Date(735, 10, 3), 
-                endDate: new Date(735, 10, 6), 
+                startDate: new BarovianDate(735, 10, 3), 
+                endDate: new BarovianDate(735, 10, 6), 
                 active: true 
             },
             { 
                 title: "The Missing Vistana", 
                 description: "Find the missing Vistani child, Arabelle", 
-                startDate: new Date(735, 10, 3), 
-                endDate: new Date(735, 10, 9), 
+                startDate: new BarovianDate(735, 10, 3), 
+                endDate: new BarovianDate(735, 10, 9), 
                 active: true 
             },
             { 
                 title: "Lady Wachter's Wish", 
                 description: "Navigate the political intrigue of Vallaki", 
-                startDate: new Date(735, 10, 4), 
-                endDate: new Date(735, 10, 9), 
+                startDate: new BarovianDate(735, 10, 4), 
+                endDate: new BarovianDate(735, 10, 9), 
                 active: true 
             },
             { 
                 title: "The Strazni Siblings", 
                 description: "Uncover the connection between Izek and Ireena", 
-                startDate: new Date(735, 10, 4), 
-                endDate: new Date(735, 10, 6), 
+                startDate: new BarovianDate(735, 10, 4), 
+                endDate: new BarovianDate(735, 10, 6), 
                 active: true 
             },
             { 
                 title: "The Lost Soul", 
                 description: "Help Victor Vallakovich with a supernatural problem", 
-                startDate: new Date(735, 10, 5), 
-                endDate: new Date(735, 10, 7), 
+                startDate: new BarovianDate(735, 10, 5), 
+                endDate: new BarovianDate(735, 10, 7), 
                 active: true 
             },
             { 
                 title: "The Walls of Krezk", 
                 description: "Gain entry to the walled town of Krezk", 
-                startDate: new Date(735, 10, 3), 
-                endDate: new Date(735, 10, 8), 
+                startDate: new BarovianDate(735, 10, 3), 
+                endDate: new BarovianDate(735, 10, 8), 
                 active: true 
             },
             { 
                 title: "The Stolen Gem", 
                 description: "Recover the stolen gem for the Wizard of Wines winery", 
-                startDate: new Date(735, 10, 9), 
-                endDate: new Date(735, 10, 16), 
+                startDate: new BarovianDate(735, 10, 9), 
+                endDate: new BarovianDate(735, 10, 16), 
                 active: true 
             },
             { 
                 title: "The Fallen Abbey", 
                 description: "Investigate the Abbey of Saint Markovia", 
-                startDate: new Date(735, 10, 11), 
-                endDate: new Date(735, 10, 16), 
+                startDate: new BarovianDate(735, 10, 11), 
+                endDate: new BarovianDate(735, 10, 16), 
                 active: true 
             },
             { 
                 title: "The Den of Wolves", 
                 description: "Deal with the werewolf threat in the Svalich Woods", 
-                startDate: new Date(735, 10, 12), 
-                endDate: new Date(735, 10, 16), 
+                startDate: new BarovianDate(735, 10, 12), 
+                endDate: new BarovianDate(735, 10, 16), 
                 active: true 
             },
             { 
                 title: "Argynvost's Beacon", 
                 description: "Restore hope to the land by lighting Argynvost's beacon", 
-                startDate: new Date(735, 10, 9), 
-                endDate: new Date(735, 10, 16), 
+                startDate: new BarovianDate(735, 10, 9), 
+                endDate: new BarovianDate(735, 10, 16), 
                 active: true 
             },
             { 
                 title: "Dinner with the Devil", 
                 description: "Attend a dinner invitation from Strahd von Zarovich", 
-                startDate: new Date(735, 10, 13), 
-                endDate: new Date(735, 10, 13), 
+                startDate: new BarovianDate(735, 10, 13), 
+                endDate: new BarovianDate(735, 10, 13), 
                 active: true 
             },
             { 
                 title: "Ravenloft Heist", 
                 description: "Infiltrate Castle Ravenloft to gather crucial items or information", 
-                startDate: new Date(735, 10, 14), 
-                endDate: new Date(735, 10, 14), 
+                startDate: new BarovianDate(735, 10, 14), 
+                endDate: new BarovianDate(735, 10, 14), 
                 active: true 
             }
         ];
 
-        let currentDate = new Date(735, 9, 27);
-        
-        function getMoonPhase(date) {
-            // Convert the given date to number of days since campaign start
-            const startDate = new Date(735, 10, 8); // Neyavr 8th - first full moon
-            const dayDifference = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
-            
-            // Calculate position in 14-day cycle
-            const dayInCycle = ((dayDifference % 14) + 14) % 14;
-            
-            // Define moon phases based on 14-day cycle
-            if (dayInCycle === 0) return "Full Moon";
-            if (dayInCycle === 7) return "New Moon";
-            if (dayInCycle === 3) return "Last Quarter";
-            if (dayInCycle === 10) return "First Quarter";
-            if (dayInCycle < 3) return "Waning Gibbous";
-            if (dayInCycle < 7) return "Waning Crescent";
-            if (dayInCycle < 10) return "Waxing Crescent";
-            return "Waxing Gibbous";
-        }
-        function getMoonIndicator(date) {
-            const startDate = new Date(735, 10, 8); // Neyavr 8th - first full moon
-            const dayDifference = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
-            const dayInCycle = ((dayDifference % 14) + 14) % 14;
-            
-            if (dayInCycle === 0) return 'full';
-            if (dayInCycle === 7) return 'new';
-            return null;
-        }
-        
-        function isFullMoon(date) {
-            const daysSinceFullMoon = (date - new Date(735, 10, 1)) / (1000 * 60 * 60 * 24) % 14;
-            return daysSinceFullMoon === 0;
-        }
+        // Calendar app state
+        let currentDate = new BarovianDate(735, 9, 27); // Start of campaign
+        let selectedDate = currentDate.clone();
+        let savedEvents = [...campaignEvents];
+        let savedQuests = [...initialQuests];
 
-        function updateCalendar() {
-            const dateHeader = document.getElementById('current-date');
-            const moonPhaseElement = document.getElementById('moon-phase');
+        // Main function to set up the calendar
+        function initCalendar() {
+            setupMonthSelection();
+            renderCalendar();
+            setupEventListeners();
+            populateQuestDateSelects();
+            switchTab('calendar');
+        }
+        
+        // Populates the drop-downs for selecting dates for new quests
+        function populateQuestDateSelects() {
+            const startMonthSelect = document.getElementById('start-month');
+            const endMonthSelect = document.getElementById('end-month');
+            const startDaySelect = document.getElementById('start-day');
+            const endDaySelect = document.getElementById('end-day');
+            
+            // Clear existing options
+            startMonthSelect.innerHTML = '';
+            endMonthSelect.innerHTML = '';
+            startDaySelect.innerHTML = '';
+            endDaySelect.innerHTML = '';
+            
+            // Add month options
+            BAROVIAN_MONTHS.forEach((month, index) => {
+                // Only campaign-relevant months
+                if (index >= 9 && index <= 11) { // Octyavr to Dekavr
+                    const optionStart = document.createElement('option');
+                    optionStart.value = index;
+                    optionStart.textContent = month;
+                    startMonthSelect.appendChild(optionStart);
+            const optionEnd = document.createElement('option');
+                    optionEnd.value = index;
+                    optionEnd.textContent = month;
+                    endMonthSelect.appendChild(optionEnd);
+                }
+            });
+            
+            // Add day options (1-28)
+            for (let day = 1; day <= 28; day++) {
+                const optionStart = document.createElement('option');
+                optionStart.value = day;
+                optionStart.textContent = day;
+                startDaySelect.appendChild(optionStart);
+                
+                const optionEnd = document.createElement('option');
+                optionEnd.value = day;
+                optionEnd.textContent = day;
+                endDaySelect.appendChild(optionEnd);
+            }
+            
+            // Set default selections to current date
+            startMonthSelect.value = selectedDate.month;
+            endMonthSelect.value = selectedDate.month;
+            startDaySelect.value = selectedDate.day;
+            endDaySelect.value = selectedDate.day;
+        }
+        
+        // Render the calendar for the current month
+        function renderCalendar() {
             const calendarGrid = document.getElementById('calendar-grid');
-        
-            // Update the header with the current month and year
-            const monthName = BAROVIAN_MONTHS[currentDate.getMonth()];
-            dateHeader.textContent = `${monthName} ${currentDate.getFullYear()}`;
-            moonPhaseElement.textContent = `Moon Phase: ${getMoonPhase(currentDate)}`;
-        
-            // Clear existing calendar cells
-            while (calendarGrid.firstChild) {
-                calendarGrid.removeChild(calendarGrid.firstChild);
+            const currentMonthElem = document.getElementById('current-month');
+            const moonPhaseElem = document.getElementById('moon-phase');
+            
+            // Clear the grid
+            calendarGrid.innerHTML = '';
+            
+            // Update header
+            currentMonthElem.textContent = `${BAROVIAN_MONTHS[currentDate.month]} ${currentDate.year}`;
+            
+            // Highlight campaign relevant months
+            if (currentDate.month >= 9 && currentDate.month <= 11) {
+                currentMonthElem.parentElement.classList.add('campaign-month');
+            } else {
+                currentMonthElem.parentElement.classList.remove('campaign-month');
             }
-        
-            // Calculate first day of the month
-            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-            const daysInMonth = DAYS_IN_MONTH; // Consistent across all months in this fictional calendar
-        
-            // Fill in empty cells for days before the start of the month
-            for (let i = 0; i < firstDay; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.classList.add('calendar-cell', 'empty-cell');
-                calendarGrid.appendChild(emptyCell);
-            }
-        
-            // Create cells for each day in the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateCell = document.createElement('div');
-                dateCell.classList.add('calendar-cell', 'p-2', 'border', 'border-gray-700', 'rounded', 'text-center');
-                dateCell.textContent = day;
-        
-                // Check for events on this date
-                const currentCellDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                const dayEvents = campaignEvents.filter(event => 
-                    event.date.toDateString() === currentCellDate.toDateString()
+            
+            // Show moon phase for selected date
+            const moonPhase = getMoonPhase(selectedDate);
+            moonPhaseElem.textContent = `Moon Phase: ${moonPhase.name}`;
+            
+            // Get the day of week for the first day of the month (0 = Sunday, 6 = Saturday)
+            const firstDayOfMonth = new BarovianDate(currentDate.year, currentDate.month, 1);
+            const firstDayOfWeek = firstDayOfMonth.getDayOfWeek();
+            
+            // Create 4 rows of 7 days (28 days in Barovian month)
+            for (let day = 1; day <= 28; day++) {
+                const dayDate = new BarovianDate(currentDate.year, currentDate.month, day);
+                const dayCell = document.createElement('div');
+                
+                dayCell.classList.add(
+                    'calendar-cell', 
+                    'p-2', 
+                    'rounded'
                 );
                 
-                // Add moon phase indicator
-                const moonPhase = getMoonIndicator(currentCellDate);
-                if (moonPhase === 'full') {
-                    dateCell.classList.add('moon-full');
-                } else if (moonPhase === 'new') {
-                    dateCell.classList.add('moon-new');
+                // Apply opacity to non-campaign months
+                if (currentDate.month < 9 || currentDate.month > 11) {
+                    dayCell.classList.add('inactive-month');
                 }
                 
+                // Add day number
+                const dayNumber = document.createElement('div');
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+                
+                // Add moon phase indicator
+                const moonPhase = getMoonPhase(dayDate);
+                const moonIcon = document.createElement('div');
+                moonIcon.classList.add('moon-icon');
+                moonIcon.textContent = moonPhase.emoji;
+                dayCell.appendChild(moonIcon);
+                
+                // Check for events on this date
+                const dayEvents = savedEvents.filter(event => 
+                    event.date.equals(dayDate)
+                );
+                
+                // Add event indicators
                 if (dayEvents.length > 0) {
-                    dateCell.classList.add('event-highlight', 'text-gray-300', 'font-bold');
-                    dateCell.title = dayEvents.map(event => event.title).join('\n'); // Tooltip with event titles
+                    const eventContainer = document.createElement('div');
+                    eventContainer.classList.add('flex', 'mt-1', 'justify-center');
+                    
+                    // Get unique event types and add dots
+                    const eventTypes = new Set(dayEvents.map(event => event.type));
+                    eventTypes.forEach(type => {
+                        const dot = document.createElement('div');
+                        dot.classList.add('event-dot', `event-${type}`);
+                        eventContainer.appendChild(dot);
+                    });
+                    
+                    dayCell.appendChild(eventContainer);
                 }
-        
-                // Add click listener for day details
-                dateCell.addEventListener('click', () => showDayDetails(currentCellDate));
-                calendarGrid.appendChild(dateCell);
+                
+                // Highlight selected date
+                if (dayDate.equals(selectedDate)) {
+                    dayCell.classList.add('bg-gray-700');
+                }
+                
+                // Add click listener
+                dayCell.addEventListener('click', () => {
+                    selectedDate = dayDate;
+                    renderCalendar(); // Refresh to update highlights
+                    showDayDetails(selectedDate);
+                });
+                
+                calendarGrid.appendChild(dayCell);
             }
+            
+            // Show details for the selected date
+            showDayDetails(selectedDate);
+        }
         
-            // Fill in remaining empty cells to complete the grid
-            const totalCells = firstDay + daysInMonth;
-            const rowsNeeded = Math.ceil(totalCells / 7) * 7;
-            for (let i = totalCells; i < rowsNeeded; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.classList.add('calendar-cell', 'empty-cell');
-                calendarGrid.appendChild(emptyCell);
-            }
+        // Get moon phase for a given date based on the specified cycle
+        function getMoonPhase(date) {
+            // First full moon is on Neyavr 8th (month 10, day 8)
+            const firstFullMoon = new BarovianDate(735, 10, 8);
+            
+            // Calculate days since first full moon
+            const daysSince = firstFullMoon.daysBetween(date);
+            
+            // Moon cycle is 14 days
+            const dayInCycle = ((daysSince % 14) + 14) % 14;
+            
+            return MOON_PHASES[dayInCycle];
         }
 
-        function showDayDetails(selectedDate) {
-            const eventDetailsSection = document.getElementById('event-details');
-            const selectedDateElement = document.getElementById('selected-date');
+        // Display events and quests for the selected date
+        function showDayDetails(date) {
             const dateEventsElement = document.getElementById('date-events');
+            const selectedDateElement = document.getElementById('selected-date');
             const questListElement = document.getElementById('quest-list');
-
-            // Format date
-            const formattedDate = `${selectedDate.getDate()} ${BAROVIAN_MONTHS[selectedDate.getMonth()]} ${YEAR}`;
-            selectedDateElement.textContent = formattedDate;
-
-            // Add this line:
-            document.getElementById('moon-phase').textContent = `Moon Phase: ${getMoonPhase(selectedDate)}`;
-
-            // Find and display events
-            const dayEvents = campaignEvents.filter(event => 
-                event.date.toDateString() === selectedDate.toDateString()
+            
+            // Format and display date
+            selectedDateElement.textContent = date.toDisplayString();
+            
+            // Find events for this date
+            const dayEvents = savedEvents.filter(event => 
+                event.date.equals(date)
             );
-
-            dateEventsElement.innerHTML = dayEvents.length > 0 
-                ? dayEvents.map(event => `
+            
+            // Display events
+            if (dayEvents.length > 0) {
+                dateEventsElement.innerHTML = dayEvents.map(event => `
                     <div class="mb-2 p-2 bg-gray-700/50 rounded">
-                        <h4 class="font-bold text-gray-300">${event.title}</h4>
-                        <p class="text-gray-500">${event.description}</p>
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-gray-300">${event.title}</h4>
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-600">${event.type}</span>
+                        </div>
+                        <p class="text-gray-400 mt-1">${event.description}</p>
                     </div>
-                `).join('') 
-                : '<p class="text-gray-500">No events on this date.</p>';
-
-            // Find and display active quests
-            const activeQuests = initialQuests.filter(quest => 
-                selectedDate >= quest.startDate && selectedDate <= quest.endDate
+                `).join('');
+            } else {
+                dateEventsElement.innerHTML = '<p class="text-gray-500">No events on this date.</p>';
+            }
+            
+            // Find active quests for this date
+            const activeQuests = savedQuests.filter(quest => 
+                !date.isBefore(quest.startDate) && !date.isAfter(quest.endDate)
             );
-
-            questListElement.innerHTML = activeQuests.length > 0
-                ? activeQuests.map(quest => `
+            
+            // Display quests
+            if (activeQuests.length > 0) {
+                questListElement.innerHTML = activeQuests.map(quest => `
                     <div class="p-2 bg-gray-700/50 rounded">
                         <h4 class="font-bold text-gray-300">${quest.title}</h4>
-                        <p class="text-gray-500">${quest.description}</p>
+                        <p class="text-gray-400 text-sm">${quest.description}</p>
+                        <p class="text-gray-500 text-xs mt-1">
+                            ${quest.startDate.toDisplayString()} - ${quest.endDate.toDisplayString()}
+                        </p>
                     </div>
-                `).join('')
-                : '<p class="text-gray-500">No active quests.</p>';
+                `).join('');
+            } else {
+                questListElement.innerHTML = '<p class="text-gray-500">No active quests.</p>';
+            }
         }
-
+        
+        // Change month
         function changeMonth(delta) {
-            currentDate.setMonth(currentDate.getMonth() + delta);
-            updateCalendar();
+            const newMonth = currentDate.month + delta;
+            
+            if (newMonth < 0) {
+                currentDate = new BarovianDate(currentDate.year - 1, 11, currentDate.day);
+            } else if (newMonth > 11) {
+                currentDate = new BarovianDate(currentDate.year + 1, 0, currentDate.day);
+            } else {
+                currentDate = new BarovianDate(currentDate.year, newMonth, currentDate.day);
+            }
+            
+            // Adjust selected date to be in the new month
+            selectedDate = new BarovianDate(currentDate.year, currentDate.month, 
+                Math.min(selectedDate.day, 28));
+            
+            renderCalendar();
         }
-
+        
+        // Add a custom event
+        function addCustomEvent() {
+            const title = document.getElementById('custom-event-title').value;
+            const description = document.getElementById('custom-event-description').value;
+            const type = document.getElementById('custom-event-type').value;
+            
+            if (title && description) {
+                savedEvents.push({
+                    date: selectedDate.clone(),
+                    title: title,
+                    description: description,
+                    type: type
+                });
+                
+                // Reset form and close modal
+                document.getElementById('custom-event-title').value = '';
+                document.getElementById('custom-event-description').value = '';
+                closeModal();
+                
+                // Update calendar
+                renderCalendar();
+            }
+        }
+        
+        // Add a quest
         function addQuest() {
             const title = document.getElementById('quest-title').value;
             const description = document.getElementById('quest-description').value;
-            const startDate = new Date(document.getElementById('quest-start-date').value);
-            const endDate = new Date(document.getElementById('quest-end-date').value);
-
-            if (title && description && startDate && endDate) {
-                initialQuests.push({
-                    title, 
-                    description, 
-                    startDate, 
-                    endDate, 
+            const startMonth = parseInt(document.getElementById('start-month').value);
+            const startDay = parseInt(document.getElementById('start-day').value);
+            const endMonth = parseInt(document.getElementById('end-month').value);
+            const endDay = parseInt(document.getElementById('end-day').value);
+            
+            if (title && description) {
+                const startDate = new BarovianDate(735, startMonth, startDay);
+                const endDate = new BarovianDate(735, endMonth, endDay);
+                
+                savedQuests.push({
+                    title: title,
+                    description: description,
+                    startDate: startDate,
+                    endDate: endDate,
                     active: true
                 });
-
+                
                 // Reset form
                 document.getElementById('quest-title').value = '';
                 document.getElementById('quest-description').value = '';
-                document.getElementById('quest-start-date').value = '';
-                document.getElementById('quest-end-date').value = '';
-
-                // Refresh current view
-                showDayDetails(currentDate);
+                
+                // Update display
+                showDayDetails(selectedDate);
             }
         }
-
-        function showCustomEventModal() {
+        
+        // Show timeline view
+        function showTimeline(showAll = true) {
+            const timelineContent = document.getElementById('timeline-content');
+            timelineContent.innerHTML = '';
+            
+            // Get events to show
+            let eventsToShow = savedEvents;
+            if (!showAll) {
+                // Only show future events based on selected date
+                eventsToShow = savedEvents.filter(event => 
+                    !event.date.isBefore(selectedDate)
+                );
+            }
+            
+            // Sort events by date
+            eventsToShow.sort((a, b) => {
+                if (a.date.isBefore(b.date)) return -1;
+                if (a.date.isAfter(b.date)) return 1;
+                return 0;
+            });
+            
+            // Group events by month
+            const eventsByMonth = {};
+            eventsToShow.forEach(event => {
+                const monthKey = `${BAROVIAN_MONTHS[event.date.month]} ${event.date.year}`;
+                if (!eventsByMonth[monthKey]) {
+                    eventsByMonth[monthKey] = [];
+                }
+                eventsByMonth[monthKey].push(event);
+            });
+            
+            // Generate timeline HTML
+            for (const [month, events] of Object.entries(eventsByMonth)) {
+                // Create month header
+                const monthSection = document.createElement('div');
+                monthSection.classList.add('mb-4');
+                
+                const monthHeader = document.createElement('h4');
+                monthHeader.classList.add('text-xl', 'gothic-header', 'mb-2');
+                monthHeader.textContent = month;
+                monthSection.appendChild(monthHeader);
+                
+                // Create event list
+                const eventList = document.createElement('div');
+                eventList.classList.add('space-y-2', 'pl-4', 'border-l-2', 'border-gray-700');
+                
+                events.forEach(event => {
+                    const eventItem = document.createElement('div');
+                    eventItem.classList.add('p-2', 'bg-gray-700/30', 'rounded');
+                    eventItem.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="font-bold">${event.date.day} - ${event.title}</div>
+                            <span class="text-xs px-2 py-1 rounded-full bg-gray-600">${event.type}</span>
+                        </div>
+                        <p class="text-gray-400 text-sm mt-1">${event.description}</p>
+                    `;
+                    eventList.appendChild(eventItem);
+                });
+                
+                monthSection.appendChild(eventList);
+                timelineContent.appendChild(monthSection);
+            }
+            
+            // If no events
+            if (Object.keys(eventsByMonth).length === 0) {
+                timelineContent.innerHTML = '<p class="text-gray-500">No events to display.</p>';
+            }
+        }
+        
+        // Switch between calendar and timeline view
+        function switchTab(tab) {
+            const calendarView = document.getElementById('view-calendar');
+            const timelineView = document.getElementById('view-timeline');
+            const calendarTab = document.getElementById('tab-calendar');
+            const timelineTab = document.getElementById('tab-timeline');
+            
+            if (tab === 'calendar') {
+                calendarView.classList.remove('hidden');
+                timelineView.classList.add('hidden');
+                calendarTab.classList.add('tab-active');
+                timelineTab.classList.remove('tab-active');
+            } else {
+                calendarView.classList.add('hidden');
+                timelineView.classList.remove('hidden');
+                calendarTab.classList.remove('tab-active');
+                timelineTab.classList.add('tab-active');
+                
+                // Generate timeline
+                showTimeline(true);
+            }
+        }
+        
+        // Open modal
+        function openModal() {
             document.getElementById('custom-event-modal').classList.remove('hidden');
             document.getElementById('custom-event-modal').classList.add('flex');
         }
-
+        
+        // Close modal
         function closeModal() {
             document.getElementById('custom-event-modal').classList.remove('flex');
             document.getElementById('custom-event-modal').classList.add('hidden');
         }
-
-        function saveCustomEvent() {
-            const title = document.getElementById('custom-event-title').value;
-            const description = document.getElementById('custom-event-description').value;
-
-            if (title && description) {
-                campaignEvents.push({
-                    date: currentDate,
-                    title: title,
-                    description: description,
-                    type: 'custom'
-                });
-
-                // Refresh calendar and close modal
-                updateCalendar();
-                showDayDetails(currentDate);
-                closeModal();
-
-                // Reset modal inputs
-                document.getElementById('custom-event-title').value = '';
-                document.getElementById('custom-event-description').value = '';
-            }
+        
+        // Set up month navigation buttons
+        function setupMonthSelection() {
+            document.getElementById('prev-month').addEventListener('click', () => changeMonth(-1));
+            document.getElementById('next-month').addEventListener('click', () => changeMonth(1));
         }
-
-        // Initialize calendar on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateCalendar();
-            showDayDetails(currentDate);
-        });
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Tab switching
+            document.getElementById('tab-calendar').addEventListener('click', () => switchTab('calendar'));
+            document.getElementById('tab-timeline').addEventListener('click', () => switchTab('timeline'));
+            
+            // Timeline filters
+            document.getElementById('show-all-events').addEventListener('click', () => showTimeline(true));
+            document.getElementById('show-upcoming-events').addEventListener('click', () => showTimeline(false));
+            
+            // Custom event modal
+            document.getElementById('add-event-btn').addEventListener('click', openModal);
+            document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+            document.getElementById('save-event-btn').addEventListener('click', addCustomEvent);
+            
+            // Add quest
+            document.getElementById('add-quest-btn').addEventListener('click', addQuest);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initCalendar);
     </script>
 </body>
 </html>
